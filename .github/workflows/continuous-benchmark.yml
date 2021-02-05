@@ -1,0 +1,47 @@
+name: Continuous Benchmark
+uses: rhysd/github-action-benchmark@v1.8.1
+on:
+  push:
+    branches:
+     - performance_benchmark_test
+    #  - master
+
+jobs:
+  benchmark:
+    name: Performance regression check
+    runs-on: ubuntu-16.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v1
+        with:
+          python-version: '3.8'
+          architecture: 'x64'
+      - name: Install requirements
+        run: |
+          pip install -r requirements.txt
+          pip install -r dev_tools/conf/pip-list-dev-tools.txt
+      - name: Run benchmark
+        run: |
+          pytest --benchmark-json output.json
+      # Download previous benchmark result from cache (if exists)
+      - name: Download previous benchmark data
+        uses: actions/cache@v1
+        with:
+          path: ./.cache/
+          key: ${{ runner.os }}-benchmark
+      - name: Store benchmark result
+        uses: rhysd/github-action-benchmark@v1
+        with:
+          name: Python Benchmark with pytest-benchmark
+          tool: 'pytest'
+          output-file-path: output.json
+          external-data-json-path: ./cache/benchmark-data.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          # Show alert with commit comment on detecting possible performance regression
+          alert-threshold: '200%'
+          comment-on-alert: true
+          fail-on-alert: true
+          alert-comment-cc-users: '@quantumlib/cirq-maintainers'
+
+
