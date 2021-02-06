@@ -1,9 +1,9 @@
 name: Continuous Benchmark
 
-on:
-  push:
-    branches:
-     - performance_benchmark_test
+on: workflow_dispatch
+  # push:
+  #   branches:
+  #    - performance_benchmark_test
     #  - master
 
 jobs:
