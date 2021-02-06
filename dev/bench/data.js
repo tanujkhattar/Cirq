@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1612569806736,
+  "lastUpdate": 1612571441928,
   "repoUrl": "https://github.com/tanujkhattar/Cirq",
   "entries": {
     "Python Benchmark with pytest-benchmark": [
@@ -206,6 +206,212 @@ window.BENCHMARK_DATA = {
             "unit": "iter/sec",
             "range": "stddev: 0.0012463966183823365",
             "extra": "mean: 42.10906169563931 msec\nrounds: 23"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "tanujkhattar@google.com",
+            "name": "Tanuj Khattar",
+            "username": "tanujkhattar"
+          },
+          "committer": {
+            "email": "tanujkhattar@google.com",
+            "name": "Tanuj Khattar",
+            "username": "tanujkhattar"
+          },
+          "distinct": true,
+          "id": "0f7a9c023c2c98b56fb93dff58dd087f57ead6f0",
+          "message": "fix workflow yet again",
+          "timestamp": "2021-02-06T05:56:27+05:30",
+          "tree_id": "dd7c9a99b4a11f83a50468165af151ad210e70d4",
+          "url": "https://github.com/tanujkhattar/Cirq/commit/0f7a9c023c2c98b56fb93dff58dd087f57ead6f0"
+        },
+        "date": 1612571441319,
+        "tool": "pytest",
+        "benches": [
+          {
+            "name": "cirq/linalg/decompositions_perf_test.py::test_kak_decomposition_perf[target0]",
+            "value": 981.5430187042215,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00038247685867401343",
+            "extra": "mean: 1.018804047244047 msec\nrounds: 508"
+          },
+          {
+            "name": "cirq/linalg/decompositions_perf_test.py::test_kak_decomposition_perf[target1]",
+            "value": 979.252509440525,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0000776144613696801",
+            "extra": "mean: 1.0211870690750933 msec\nrounds: 941"
+          },
+          {
+            "name": "cirq/linalg/decompositions_perf_test.py::test_kak_decomposition_perf[target2]",
+            "value": 1158.1271584884123,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0000918931005514996",
+            "extra": "mean: 863.4630426120048 usec\nrounds: 1103"
+          },
+          {
+            "name": "cirq/linalg/decompositions_perf_test.py::test_kak_decomposition_perf[target3]",
+            "value": 1008.4106030003677,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00009931055249696082",
+            "extra": "mean: 991.6595452533489 usec\nrounds: 906"
+          },
+          {
+            "name": "cirq/linalg/decompositions_perf_test.py::test_kak_decomposition_perf[target4]",
+            "value": 1038.305982505005,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0001246087518262947",
+            "extra": "mean: 963.1072312493197 usec\nrounds: 960"
+          },
+          {
+            "name": "cirq/linalg/decompositions_perf_test.py::test_kak_decomposition_perf[target5]",
+            "value": 984.4504786123796,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0000622044514611806",
+            "extra": "mean: 1.015795128069355 msec\nrounds: 937"
+          },
+          {
+            "name": "cirq/linalg/decompositions_perf_test.py::test_kak_decomposition_perf[target6]",
+            "value": 914.668481346273,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00018350614515166372",
+            "extra": "mean: 1.0932922915722758 msec\nrounds: 878"
+          },
+          {
+            "name": "cirq/linalg/decompositions_perf_test.py::test_kak_decomposition_perf[target7]",
+            "value": 933.0051417059966,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00008119866255975676",
+            "extra": "mean: 1.071805454546053 msec\nrounds: 869"
+          },
+          {
+            "name": "cirq/linalg/decompositions_perf_test.py::test_kak_decomposition_perf[target8]",
+            "value": 909.9028951625452,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00015952166812137664",
+            "extra": "mean: 1.099018373626957 msec\nrounds: 910"
+          },
+          {
+            "name": "cirq/linalg/decompositions_perf_test.py::test_kak_decomposition_perf[target9]",
+            "value": 905.9659267542083,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00011946870985034093",
+            "extra": "mean: 1.1037942713614919 msec\nrounds: 866"
+          },
+          {
+            "name": "cirq/linalg/decompositions_perf_test.py::test_kak_decomposition_perf[target10]",
+            "value": 917.3220718528504,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00012946549638784876",
+            "extra": "mean: 1.0901296618538272 msec\nrounds: 831"
+          },
+          {
+            "name": "cirq/linalg/decompositions_perf_test.py::test_kak_decomposition_perf[target11]",
+            "value": 906.9431164722624,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0002183058162791436",
+            "extra": "mean: 1.1026049835293983 msec\nrounds: 850"
+          },
+          {
+            "name": "cirq/linalg/decompositions_perf_test.py::test_kak_decomposition_perf[target12]",
+            "value": 927.3604310744922,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00012199380370051953",
+            "extra": "mean: 1.0783293814265327 msec\nrounds: 603"
+          },
+          {
+            "name": "cirq/linalg/decompositions_perf_test.py::test_kak_decomposition_perf[target13]",
+            "value": 892.3861812612405,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0001632728850447188",
+            "extra": "mean: 1.120591086010168 msec\nrounds: 872"
+          },
+          {
+            "name": "cirq/linalg/decompositions_perf_test.py::test_kak_decomposition_perf[target14]",
+            "value": 890.9252450266328,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00009758112252374239",
+            "extra": "mean: 1.1224286275220619 msec\nrounds: 843"
+          },
+          {
+            "name": "cirq/linalg/decompositions_perf_test.py::test_kak_decomposition_perf[target15]",
+            "value": 897.026360393885,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00011884101426652626",
+            "extra": "mean: 1.1147944410027137 msec\nrounds: 839"
+          },
+          {
+            "name": "examples/examples_perf_test.py::test_example_runs_bernstein_vazirani_perf",
+            "value": 140.70384295495268,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0009974707015079631",
+            "extra": "mean: 7.107126422411625 msec\nrounds: 116"
+          },
+          {
+            "name": "examples/examples_perf_test.py::test_example_runs_hello_line_perf",
+            "value": 2.4651462560280013,
+            "unit": "iter/sec",
+            "range": "stddev: 0.004904635719211659",
+            "extra": "mean: 405.65544439998575 msec\nrounds: 5"
+          },
+          {
+            "name": "examples/examples_perf_test.py::test_example_runs_hello_qubit_perf",
+            "value": 606.1669805572217,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00022631118165688713",
+            "extra": "mean: 1.6497104462548347 msec\nrounds: 614"
+          },
+          {
+            "name": "examples/examples_perf_test.py::test_example_runs_bell_inequality_perf",
+            "value": 151.20862970061816,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00039454072988663526",
+            "extra": "mean: 6.613379156863769 msec\nrounds: 153"
+          },
+          {
+            "name": "examples/examples_perf_test.py::test_example_runs_quantum_fourier_transform_perf",
+            "value": 123.11120957934033,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0004482548615276721",
+            "extra": "mean: 8.122737185483825 msec\nrounds: 124"
+          },
+          {
+            "name": "examples/examples_perf_test.py::test_example_runs_bcs_mean_field_perf",
+            "value": 2.5721274116852877,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0031858738192446197",
+            "extra": "mean: 388.7832288000027 msec\nrounds: 5"
+          },
+          {
+            "name": "examples/examples_perf_test.py::test_example_runs_grover_perf",
+            "value": 77.43867287323562,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000813998599885545",
+            "extra": "mean: 12.91344444444399 msec\nrounds: 81"
+          },
+          {
+            "name": "examples/examples_perf_test.py::test_example_runs_phase_estimator_perf",
+            "value": 12.866457621039762,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0018439501310152633",
+            "extra": "mean: 77.72147000000675 msec\nrounds: 13"
+          },
+          {
+            "name": "examples/examples_perf_test.py::test_example_runs_quantum_teleportation",
+            "value": 164.2989127861462,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0003803489966334539",
+            "extra": "mean: 6.086467542859607 msec\nrounds: 140"
+          },
+          {
+            "name": "examples/examples_perf_test.py::test_example_runs_superdense_coding",
+            "value": 25.023118508864076,
+            "unit": "iter/sec",
+            "range": "stddev: 0.001501838796802709",
+            "extra": "mean: 39.963044560004164 msec\nrounds: 25"
           }
         ]
       }
