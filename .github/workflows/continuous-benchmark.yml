@@ -24,12 +24,6 @@ jobs:
       - name: Run benchmark
         run: |
           pytest --benchmark-only --benchmark-json output.json
-      # Download previous benchmark result from cache (if exists)
-      - name: Download previous benchmark data
-        uses: actions/cache@v1
-        with:
-          path: ./.cache/
-          key: ${{ runner.os }}-benchmark
       - name: Store benchmark result
         uses: rhysd/github-action-benchmark@v1
         with:
