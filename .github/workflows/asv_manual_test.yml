@@ -22,11 +22,13 @@ jobs:
           architecture: 'x64'
       - name: Install ASV
         run: pip install asv virtualenv
+      - name: Set Machine Info
+        run: asv machine --yes --machine "github-ubuntu-latest"
       # Run the benchmarks
       - name: Run ASV
         env:
           ASV_PYTHONPATH: "$(pwd)/examples" 
-        run: asv run --skip-existing-commits ALL
+        run: asv run --skip-existing-commits ALL --machine "github-ubuntu-latest"
       # Publish results to github pages
       - name: Publish results
         run: asv gh-pages
