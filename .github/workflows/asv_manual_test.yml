@@ -20,6 +20,12 @@ jobs:
         with:
           python-version: '3.7'
           architecture: 'x64'
+      - name: Cache asv results
+        uses: actions/cache@v2
+        with:
+          path: |
+            $GITHUB_WORKSPACE/.asv/
+          key: ${{ runner.os }}-asv
       - name: Install ASV
         run: pip install asv virtualenv
       - name: Set Machine Info
@@ -35,4 +41,8 @@ jobs:
           asv run --machine "github-ubuntu-latest"
       # Publish results to github pages
       - name: Publish results
-        run: asv gh-pages
+        uses: JamesIves/github-pages-deploy-action@4.0.0
+        with:
+          branch: gh-pages # The branch the action should deploy to.
+          folder: $GITHUB_WORKSPACE/.asv/html/ # The folder the action should deploy.
+
