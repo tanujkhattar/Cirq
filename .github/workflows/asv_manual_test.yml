@@ -27,7 +27,7 @@ jobs:
       # Run the benchmarks
       - name: Run ASV
         env:
-          ASV_PYTHONPATH: $GITHUB_WORKSPACE/examples
+          ASV_PYTHONPATH: $GITHUB_WORKSPACE/Cirq/examples
         run: asv run --machine "github-ubuntu-latest"
       # Publish results to github pages
       - name: Publish results
