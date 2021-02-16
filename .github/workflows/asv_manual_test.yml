@@ -34,7 +34,9 @@ jobs:
       - name: Run ASV
         env:
           ASV_PYTHONPATH: ${{ github.workspace }}/examples
-        run: asv run --skip-existing-commits --machine "github-ubuntu-latest"
+        run: |
+          asv run --skip-existing-commits --machine "github-ubuntu-latest"
+          asv publish
       # Publish results to github pages
       - name: Publish results
         uses: JamesIves/github-pages-deploy-action@4.0.0
