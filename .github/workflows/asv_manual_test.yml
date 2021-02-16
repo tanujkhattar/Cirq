@@ -24,7 +24,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
-            $GITHUB_WORKSPACE/.asv/
+            ${{ github.workspace }}/.asv/
           key: ${{ runner.os }}-asv
       - name: Install ASV
         run: pip install asv virtualenv
@@ -33,10 +33,10 @@ jobs:
       # Run the benchmarks
       - name: Run ASV
         env:
-          ASV_PYTHONPATH: $GITHUB_WORKSPACE/examples
+          ASV_PYTHONPATH: ${{ github.workspace }}/examples
         run: |
           echo "$(pwd)"
-          echo "$GITHUB_WORKSPACE/Cirq/examples"
+          echo "$GITHUB_WORKSPACE/examples"
           echo "$ASV_PYTHONPATH"
           asv run --machine "github-ubuntu-latest"
       # Publish results to github pages
