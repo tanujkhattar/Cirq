@@ -16,6 +16,8 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - uses: actions/checkout@v2 
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v1
         with:
           python-version: '3.7'
@@ -35,7 +37,6 @@ jobs:
         env:
           ASV_PYTHONPATH: ${{ github.workspace }}/examples
         run: |
-          /usr/bin/git log
           asv run --machine "github-ubuntu-latest" ALL
           asv publish
       # Publish results to github pages
