@@ -27,8 +27,8 @@ jobs:
       # Run the benchmarks
       - name: Run ASV
         env:
-          ASV_PYTHONPATH: "$GITHUB_WORKSPACE/examples" 
-        run: asv run --skip-existing-commits ALL --machine "github-ubuntu-latest"
+          ASV_PYTHONPATH: $GITHUB_WORKSPACE/examples
+        run: asv run --machine "github-ubuntu-latest"
       # Publish results to github pages
       - name: Publish results
         run: asv gh-pages
