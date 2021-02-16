@@ -27,7 +27,7 @@ jobs:
       # Run the benchmarks
       - name: Run ASV
         env:
-          ASV_PYTHONPATH: /home/runner/work/Cirq/Cirq/examples
+          ASV_PYTHONPATH: $GITHUB_WORKSPACE/examples
         run: |
           echo "$(pwd)"
           echo "$GITHUB_WORKSPACE/Cirq/examples"
