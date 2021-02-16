@@ -21,5 +21,6 @@ def time_kak_decomposition(target):
 
 time_kak_decomposition.params = [
     [np.eye(4), SWAP, SWAP * 1j, CZ, CNOT, SWAP.dot(CZ)]
-]  # + [cirq.testing.random_unitary(4) for _ in range(10)]
+    + [cirq.testing.random_unitary(4) for _ in range(10)]
+]
 time_kak_decomposition.params_names = ["gate"]
