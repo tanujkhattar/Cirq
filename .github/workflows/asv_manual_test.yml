@@ -31,6 +31,7 @@ jobs:
         run: |
           echo "$(pwd)"
           echo "$GITHUB_WORKSPACE/Cirq/examples"
+          echo "$ASV_PYTHONPATH"
           asv run --machine "github-ubuntu-latest"
       # Publish results to github pages
       - name: Publish results
