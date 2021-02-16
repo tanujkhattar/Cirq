@@ -29,7 +29,7 @@ jobs:
         env:
           ASV_PYTHONPATH: /home/runner/work/Cirq/Cirq/examples
         run: |
-          echo "$(pwd)$
+          echo "$(pwd)"
           echo "$GITHUB_WORKSPACE/Cirq/examples"
           asv run --machine "github-ubuntu-latest"
       # Publish results to github pages
