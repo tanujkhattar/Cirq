@@ -4,7 +4,13 @@ name: ASV Test Manual Workflow
 
 # Controls when the action will run. Workflow runs when manually triggered using the UI
 # or API.
-on: workflow_dispatch
+on: 
+  workflow_dispatch:
+    inputs:
+      commit_range: 
+        description: "Range of commits on which the benchmark should be run" 
+        required: true
+        default: "ALL"
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -37,7 +43,7 @@ jobs:
         env:
           ASV_PYTHONPATH: ${{ github.workspace }}/examples
         run: |
-          asv run --machine "github-ubuntu-latest" ALL
+          asv run --skip-existing-successful --machine "github-ubuntu-latest" ${{ github.event.inputs.commit_range }}
           asv publish
       # Publish results to github pages
       - name: Publish results
