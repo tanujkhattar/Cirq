@@ -349,6 +349,9 @@ def test_controlled_operation_gate():
     op = Gateless().controlled_by(cirq.LineQubit(0))
     assert op.gate is None
 
+    op = cirq.X(cirq.LineQubit(0)).controlled_by(cirq.LineQubit(1))
+    assert op.gate == cirq.CNOT
+
 
 def test_controlled_mixture():
     a, b = cirq.LineQubit.range(2)

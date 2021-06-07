@@ -76,8 +76,8 @@ class ControlledOperation(raw_types.Operation):
     def gate(self) -> Optional['cirq.ControlledGate']:
         if self.sub_operation.gate is None:
             return None
-        return controlled_gate.ControlledGate(
-            self.sub_operation.gate,
+        return self.sub_operation.gate.controlled(
+            num_controls=len(self.control_values),
             control_values=self.control_values,
             control_qid_shape=[q.dimension for q in self.controls],
         )
