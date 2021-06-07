@@ -29,7 +29,7 @@ import itertools
 import numpy as np
 
 from cirq import protocols, qis, value
-from cirq.ops import raw_types, gate_operation, controlled_gate
+from cirq.ops import raw_types, gate_operation
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -73,13 +73,13 @@ class ControlledOperation(raw_types.Operation):
             self.control_values += sub_operation.control_values
 
     @property
-    def gate(self) -> Optional['cirq.ControlledGate']:
+    def gate(self) -> Optional['cirq.Gate']:
         if self.sub_operation.gate is None:
             return None
         return self.sub_operation.gate.controlled(
             num_controls=len(self.control_values),
             control_values=self.control_values,
-            control_qid_shape=[q.dimension for q in self.controls],
+            control_qid_shape=tuple(q.dimension for q in self.controls),
         )
 
     @property
