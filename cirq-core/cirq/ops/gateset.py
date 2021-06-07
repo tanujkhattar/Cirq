@@ -6,29 +6,25 @@ import cirq.protocols as protocols
 import itertools
 from cirq import value
 
+
 @value.value_equality()
 class ConstrainedGate:
     def __init__(self, gate_type, predicate=None):
-        if isinstance(gate_type, raw_types.Gate):
-            if protocols.is_parameterized(gate_type):
-                raise ValueError(f"ConstrainedGates do not support parameterized gate {gate_type}")
-            default_predicate = ConstrainedGate._default_instance_predicate
-        elif isinstance(gate_type, type) and issubclass(gate_type, raw_types.Gate):
-            default_predicate = ConstrainedGate._default_class_predicate
-        else:
-            raise ValueError(
-                f"ConstrainedGates support gates or gate instances. Unrecognized value {gate_type}."
-            )
+        default_predicate = ConstrainedGate._default_predicate(gate_type)
         self._predicate = default_predicate if not predicate else predicate
         self._gate_type = gate_type
 
-    def _default_predicate(self, gate_type):
+    @staticmethod
+    def _default_predicate(gate_type):
         if isinstance(gate_type, raw_types.Gate):
             if protocols.is_parameterized(gate_type):
                 raise ValueError(f"ConstrainedGates do not support parameterized gate {gate_type}")
-            default_predicate = ConstrainedGate._default_instance_predicate
+            if isinstance(gate_type, controlled_gate.ControlledGate):
+                return ConstrainedGate._default_controlled_gate_predicate
+            else:
+                return ConstrainedGate._default_instance_predicate
         elif isinstance(gate_type, type) and issubclass(gate_type, raw_types.Gate):
-            default_predicate = ConstrainedGate._default_class_predicate
+            return ConstrainedGate._default_class_predicate
         else:
             raise ValueError(
                 f"ConstrainedGates support gates or gate instances. Unrecognized value {gate_type}."
@@ -46,8 +42,6 @@ class ConstrainedGate:
         if isinstance(op, self._gate_type):
             # op is an instance of gate_type
             return True
-        if isinstance(op, cirq.ControlledGate):
-            return _default_class_predicate(self, op.sub_gate)
         return False
 
     @staticmethod
@@ -56,7 +50,14 @@ class ConstrainedGate:
             return op == self._gate_type
         return False
 
+    @staticmethod
     def _default_controlled_gate_predicate(self, op):
+        # TODO(tanujkhattar): Decide how to handle controlled gates by default.
+        if isinstance(op, controlled_gate.ControlledGate):
+            return (
+                op.sub_gate == self._gate_type.sub_gate
+                and self._gate_type.num_controls >= op.sub_gate.num_controls
+            )
         return False
 
     def _value_equality_values_(self):
@@ -73,7 +74,7 @@ class ConstrainedGate:
 
 
 class Gateset:
-    def __init__(self, gates, *, name: str = None, remove_duplicates = True):
+    def __init__(self, gates, *, name: str = None, remove_duplicates=True):
         if not isinstance(gates, Iterable):
             gates = [gates]
         self._gates = set()
@@ -87,12 +88,10 @@ class Gateset:
             self._remove_duplicates()
 
     @staticmethod
-    def from_optree(optree : 'cirq.OP_TREE', keep_instances = False) -> 'Gateset':
+    def from_optree(optree: 'cirq.OP_TREE', keep_instances=False) -> 'Gateset':
         gates = []
         for op in op_tree.flatten_to_ops(optree):
-            if isinstance(op.gate, controlled_gate.ControlledGate):
-                gates.append(type(op.gate.sub_gate))
-            elif keep_instances:
+            if isinstance(op.gate, controlled_gate.ControlledGate) or keep_instances:
                 gates.append(op.gate)
             else:
                 gates.append(type(op.gate))
