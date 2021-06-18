@@ -105,11 +105,6 @@ from cirq.ops.gate_operation import (
     GateOperation,
 )
 
-from cirq.ops.gateset import (
-    ConstrainedGate,
-    Gateset,
-)
-
 from cirq.ops.identity import (
     I,
     identity_each,

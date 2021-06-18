@@ -10,6 +10,7 @@ from cirq import value
 @value.value_equality()
 class ConstrainedGate:
     def __init__(self, gate_type, predicate=None):
+        # print("gate_type", gate_type)
         default_predicate = ConstrainedGate._default_predicate(gate_type)
         self._predicate = default_predicate if not predicate else predicate
         self._gate_type = gate_type
@@ -44,6 +45,12 @@ class ConstrainedGate:
             return True
         return False
 
+    def _value_equality_values_(self):
+        if isinstance(self._gate_type, type):
+            return (self._gate_type.__name__,)
+        else:
+            return (self._gate_type,)
+
     @staticmethod
     def _default_instance_predicate(self, op):
         if isinstance(op, raw_types.Gate):
@@ -56,12 +63,12 @@ class ConstrainedGate:
         if isinstance(op, controlled_gate.ControlledGate):
             return (
                 op.sub_gate == self._gate_type.sub_gate
-                and self._gate_type.num_controls >= op.sub_gate.num_controls
+                and self._gate_type.num_controls() >= op.num_controls()
             )
         return False
 
-    def _value_equality_values_(self):
-        return self._gate_type, self._predicate
+    # def _value_equality_values_(self):
+    #     return (self._gate_type, self._predicate.__name__)
 
     def __contains__(self, op):
         return self._predicate(self, op)
@@ -72,23 +79,31 @@ class ConstrainedGate:
         else:
             return f"ConstrainedGate({repr(self._gate_type)},  {self._predicate.__name__})"
 
+    def __str__(self):
+        if isinstance(self._gate_type, type):
+            return f"CG({self._gate_type.__name__})"
+        else:
+            return f"CG({str(self._gate_type)})"
 
+
+@value.value_equality()
 class Gateset:
     def __init__(self, gates, *, name: str = None, remove_duplicates=True):
         if not isinstance(gates, Iterable):
             gates = [gates]
-        self._gates = set()
+        gates_mutable = set()
         for gate in gates:
             if not isinstance(gate, ConstrainedGate):
-                self._gates.add(ConstrainedGate(gate))
+                gates_mutable.add(ConstrainedGate(gate))
             else:
-                self._gates.add(gate)
+                gates_mutable.add(gate)
         self._name = name
         if remove_duplicates:
-            self._remove_duplicates()
+            gates_mutable =self._remove_duplicates(gates_mutable)
+        self._gates = frozenset(gates_mutable)
 
     @staticmethod
-    def from_optree(optree: 'cirq.OP_TREE', keep_instances=False) -> 'Gateset':
+    def from_ops(optree: 'cirq.OP_TREE', keep_instances=False) -> 'Gateset':
         gates = []
         for op in op_tree.flatten_to_ops(optree):
             if isinstance(op.gate, controlled_gate.ControlledGate) or keep_instances:
@@ -97,12 +112,13 @@ class Gateset:
                 gates.append(type(op.gate))
         return Gateset(gates)
 
-    def _remove_duplicates(self):
+    def _remove_duplicates(self, gates):
         to_remove = set()
-        for g1, g2 in itertools.product(self._gates, self._gates):
+        for g1, g2 in itertools.product(gates, gates):
             if g1 != g2 and g1.gate in g2:
                 to_remove.add(g1)
-        self._gates -= to_remove
+        gates -= to_remove
+        return gates
 
     def __contains__(self, check_gate):
         for constrained_gate in self._gates:
@@ -113,5 +129,25 @@ class Gateset:
     def __or__(self, other):
         return Gateset(self._gates | other._gates)
 
+    def __sub__(self, other):
+        return Gateset(self._gates - other._gates)
+
+    def __xor__(self, other):
+        return Gateset(self._gates ^ other._gates)
+
+    def __and__(self, other):
+        return Gateset(self._gates & other._gates)
+
+    def __len__(self):
+        return len(self._gates)
+
+    def __str__(self):
+        if self._name:
+            return self._name
+        return f"Gateset({', '.join(str(g) for g in self._gates)})"
+
     def __repr__(self):
         return f"Gateset({repr(self._gates)})"
+
+    def _value_equality_values_(self):
+        return (self._gates,)
