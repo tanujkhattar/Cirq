@@ -10,7 +10,6 @@ from cirq import value
 @value.value_equality()
 class ConstrainedGate:
     def __init__(self, gate_type, predicate=None):
-        # print("gate_type", gate_type)
         default_predicate = ConstrainedGate._default_predicate(gate_type)
         self._predicate = default_predicate if not predicate else predicate
         self._gate_type = gate_type
@@ -67,9 +66,6 @@ class ConstrainedGate:
             )
         return False
 
-    # def _value_equality_values_(self):
-    #     return (self._gate_type, self._predicate.__name__)
-
     def __contains__(self, op):
         return self._predicate(self, op)
 
@@ -99,7 +95,7 @@ class Gateset:
                 gates_mutable.add(gate)
         self._name = name
         if remove_duplicates:
-            gates_mutable =self._remove_duplicates(gates_mutable)
+            gates_mutable = self._remove_duplicates(gates_mutable)
         self._gates = frozenset(gates_mutable)
 
     @staticmethod
