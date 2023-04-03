@@ -284,6 +284,7 @@ from cirq.ops import (
     qft,
     Qid,
     QuantumFourierTransformGate,
+    QubitManager,
     QubitOrder,
     QubitOrderOrList,
     QubitPermutationGate,

@@ -202,6 +202,31 @@ def test_decompose_and_get_unitary():
     np.testing.assert_allclose(_strat_unitary_from_decompose(OtherComposite()), m2)
 
 
+@pytest.mark.parametrize('exp', [-1, -0.8, -0.5, 0, 0.5, 0.8, 1])
+def test_ancilla(exp):
+    class AncillaX(cirq.Gate):
+        def __init__(self, exponent=1):
+            self._exponent = exponent
+
+        def num_qubits(self) -> int:
+            return 1
+
+        def _decompose_(self, qubits):
+            ancilla = cirq.ops.qubit_manager.CleanQubit(1)
+            # yield cirq.X(qubits[0]) ** self._exponent
+            yield cirq.CX(qubits[0], ancilla)
+            yield cirq.Z(ancilla) ** self._exponent
+            yield cirq.CX(qubits[0], ancilla)
+
+    q = cirq.LineQubit(0)
+    gate_u = cirq.unitary(AncillaX(exp))[0:2, 0:2]
+    op_u = cirq.unitary(AncillaX(exp).on(q))[0:2, 0:2]
+    exp_u = cirq.unitary(cirq.Z(q) ** exp)
+    np.testing.assert_allclose(op_u, gate_u)
+    np.testing.assert_allclose(gate_u, exp_u)
+    np.testing.assert_allclose(op_u, exp_u)
+
+
 def test_decomposed_has_unitary():
     # Gates
     assert cirq.has_unitary(DecomposableGate(True))

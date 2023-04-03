@@ -190,4 +190,7 @@ def _strat_unitary_from_decompose(val: Any) -> Optional[np.ndarray]:
     if result is None:
         return None
     state_len = np.prod(val_qid_shape, dtype=np.int64)
+    # TODO: Can we use linear algebra here to verify that the newly allocated
+    #       ancilla are correctly "freed" at the end of the function? And if the resulting
+    #       effect on system register is unitary, then return the reduced unitary?
     return result.reshape((state_len, state_len))

@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import inspect
+
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -45,7 +47,10 @@ TError = TypeVar('TError', bound=Exception)
 RaiseTypeErrorIfNotProvided: Any = ([],)
 
 DecomposeResult = Union[None, NotImplementedType, 'cirq.OP_TREE']
-OpDecomposer = Callable[['cirq.Operation'], DecomposeResult]
+OpDecomposer = Union[
+    Callable[['cirq.Operation'], DecomposeResult],
+    Callable[['cirq.Operation', 'cirq.QubitManager'], DecomposeResult],
+]
 
 DECOMPOSE_TARGET_GATESET = ops.Gateset(
     ops.XPowGate,
@@ -128,6 +133,13 @@ class SupportsDecomposeWithQubits(Protocol):
         pass
 
 
+class SupportsDecomposeWithQubitManager(Protocol):
+    def _decompose_with_qubit_manager_(
+        self, qubits: Tuple['cirq.Qid', ...], qubit_manager: 'cirq.QubitManager'
+    ) -> DecomposeResult:
+        pass
+
+
 def decompose(
     val: Any,
     *,
@@ -138,6 +150,7 @@ def decompose(
         None, Exception, Callable[['cirq.Operation'], Optional[Exception]]
     ] = _value_error_describing_bad_operation,
     preserve_structure: bool = False,
+    qubit_manager: Optional['cirq.QubitManager'] = None,
 ) -> List['cirq.Operation']:
     """Recursively decomposes a value into `cirq.Operation`s meeting a criteria.
 
@@ -200,6 +213,9 @@ def decompose(
             "acceptable to keep."
         )
 
+    if qubit_manager is None:
+        qubit_manager = ops.SimpleQubitManager()
+
     if preserve_structure:
         return _decompose_preserving_structure(
             val,
@@ -207,11 +223,14 @@ def decompose(
             fallback_decomposer=fallback_decomposer,
             keep=keep,
             on_stuck_raise=on_stuck_raise,
+            qubit_manager=qubit_manager,
         )
 
     def try_op_decomposer(val: Any, decomposer: Optional[OpDecomposer]) -> DecomposeResult:
         if decomposer is None or not isinstance(val, ops.Operation):
             return None
+        if 'qubit_manager' in inspect.signature(decomposer).parameters:
+            return decomposer(val, qubit_manager=qubit_manager)
         return decomposer(val)
 
     output = []
@@ -225,7 +244,7 @@ def decompose(
         decomposed = try_op_decomposer(item, intercepting_decomposer)
 
         if decomposed is NotImplemented or decomposed is None:
-            decomposed = decompose_once(item, default=None)
+            decomposed = decompose_once(item, default=None, qubit_manager=qubit_manager)
 
         if decomposed is NotImplemented or decomposed is None:
             decomposed = try_op_decomposer(item, fallback_decomposer)
@@ -295,11 +314,12 @@ def decompose_once(val: Any, default=RaiseTypeErrorIfNotProvided, *args, **kwarg
         TypeError: `val` didn't have a `_decompose_` method (or that method returned
             `NotImplemented` or `None`) and `default` wasn't set.
     """
-    method = getattr(val, '_decompose_', None)
-    decomposed = NotImplemented if method is None else method(*args, **kwargs)
-
-    if decomposed is not NotImplemented and decomposed is not None:
-        return list(ops.flatten_op_tree(decomposed))
+    for strat in ['_decompose_with_qubit_manager_', '_decompose_']:
+        method = getattr(val, strat, None)
+        decomposed = NotImplemented if method is None else method(*args, **kwargs)
+        if decomposed is not NotImplemented and decomposed is not None:
+            return list(ops.flatten_op_tree(decomposed))
+        kwargs.pop('qubit_manager', None)
 
     if default is not RaiseTypeErrorIfNotProvided:
         return default
@@ -318,13 +338,19 @@ def decompose_once_with_qubits(val: Any, qubits: Iterable['cirq.Qid']) -> List['
 
 @overload
 def decompose_once_with_qubits(
-    val: Any, qubits: Iterable['cirq.Qid'], default: Optional[TDefault]
+    val: Any,
+    qubits: Iterable['cirq.Qid'],
+    default: Optional[TDefault],
+    qubit_manager: Optional['cirq.QubitManager'],
 ) -> Union[TDefault, List['cirq.Operation']]:
     pass
 
 
 def decompose_once_with_qubits(
-    val: Any, qubits: Iterable['cirq.Qid'], default=RaiseTypeErrorIfNotProvided
+    val: Any,
+    qubits: Iterable['cirq.Qid'],
+    default=RaiseTypeErrorIfNotProvided,
+    qubit_manager: Optional['cirq.QubitManager'] = None,
 ):
     """Decomposes a value into operations on the given qubits.
 
@@ -352,38 +378,35 @@ def decompose_once_with_qubits(
         `val` didn't have a `_decompose_` method (or that method returned
         `NotImplemented` or `None`) and `default` wasn't set.
     """
-    return decompose_once(val, default, tuple(qubits))
+    return decompose_once(val, default, tuple(qubits), qubit_manager=qubit_manager)
 
 
 # pylint: enable=function-redefined
 
 
 def _try_decompose_into_operations_and_qubits(
-    val: Any,
+    val: Any, qubit_manager: Optional['cirq.QubitManager'] = None
 ) -> Tuple[Optional[List['cirq.Operation']], Sequence['cirq.Qid'], Tuple[int, ...]]:
     """Returns the value's decomposition (if any) and the qubits it applies to."""
+    from cirq.circuits import FrozenCircuit
 
+    if qubit_manager is None:
+        qubit_manager = ops.SimpleQubitManager()
+    qubits: Sequence[cirq.Qid] = []
     if isinstance(val, ops.Gate):
         # Gates don't specify qubits, and so must be handled specially.
         qid_shape = qid_shape_protocol.qid_shape(val)
-        qubits: Sequence[cirq.Qid] = devices.LineQid.for_qid_shape(qid_shape)
-        return decompose_once_with_qubits(val, qubits, None), qubits, qid_shape
+        qubits = devices.LineQid.for_qid_shape(qid_shape)
+        decomposed = decompose_once_with_qubits(val, qubits, None, qubit_manager=qubit_manager)
+    elif isinstance(val, ops.Operation):
+        decomposed = decompose_once(val, None, qubit_manager=qubit_manager)
+        qubits = val.qubits
+    else:
+        decomposed = decompose_once(val, None, qubit_manager=qubit_manager)
 
-    if isinstance(val, ops.Operation):
-        qid_shape = qid_shape_protocol.qid_shape(val)
-        return decompose_once(val, None), val.qubits, qid_shape
-
-    result = decompose_once(val, None)
-    if result is not None:
-        qubit_set = set()
-        qid_shape_dict: Dict[cirq.Qid, int] = defaultdict(lambda: 1)
-        for op in result:
-            for level, q in zip(qid_shape_protocol.qid_shape(op), op.qubits):
-                qubit_set.add(q)
-                qid_shape_dict[q] = max(qid_shape_dict[q], level)
-        qubits = sorted(qubit_set)
-        return result, qubits, tuple(qid_shape_dict[q] for q in qubits)
-
+    if decomposed is not None:
+        qubits = sorted(FrozenCircuit(decomposed, ops.I.on_each(*qubits)).all_qubits())
+        return (decomposed, qubits, qid_shape_protocol.qid_shape(qubits))
     return None, (), ()
 
 
@@ -396,6 +419,7 @@ def _decompose_preserving_structure(
     on_stuck_raise: Union[
         None, Exception, Callable[['cirq.Operation'], Optional[Exception]]
     ] = _value_error_describing_bad_operation,
+    qubit_manager: Optional['cirq.QubitManager'] = None,
 ) -> List['cirq.Operation']:
     """Preserves structure (e.g. subcircuits) while decomposing ops.
 
@@ -419,10 +443,15 @@ def _decompose_preserving_structure(
         if keep is not None and keep(op):
             return True
 
+    if qubit_manager is None:
+        qubit_manager = ops.SimpleQubitManager()
+
     def dps_interceptor(op: 'cirq.Operation'):
         if not isinstance(op.untagged, CircuitOperation):
             if intercepting_decomposer is None:
                 return NotImplemented
+            if 'qubit_manager' in inspect.signature(intercepting_decomposer).parameters:
+                return intercepting_decomposer(op, qubit_manager=qubit_manager)
             return intercepting_decomposer(op)
 
         new_fc = FrozenCircuit(
@@ -432,6 +461,7 @@ def _decompose_preserving_structure(
                 fallback_decomposer=fallback_decomposer,
                 keep=keep_structure,
                 on_stuck_raise=on_stuck_raise,
+                qubit_manager=qubit_manager,
             )
         )
         visited_fcs.add(new_fc)
@@ -444,4 +474,5 @@ def _decompose_preserving_structure(
         fallback_decomposer=fallback_decomposer,
         keep=keep_structure,
         on_stuck_raise=on_stuck_raise,
+        qubit_manager=qubit_manager,
     )

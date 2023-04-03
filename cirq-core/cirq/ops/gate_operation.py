@@ -164,6 +164,11 @@ class GateOperation(raw_types.Operation):
     def _decompose_(self) -> 'cirq.OP_TREE':
         return protocols.decompose_once_with_qubits(self.gate, self.qubits, NotImplemented)
 
+    def _decompose_with_qubit_manager_(self, qubit_manager: 'cirq.QubitManager') -> 'cirq.OP_TREE':
+        return protocols.decompose_once_with_qubits(
+            self.gate, self.qubits, NotImplemented, qubit_manager=qubit_manager
+        )
+
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         getter = getattr(self.gate, '_pauli_expansion_', None)
         if getter is not None:

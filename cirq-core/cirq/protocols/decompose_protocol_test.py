@@ -46,6 +46,14 @@ class DecomposeWithQubitsGiven:
         return self.func(*qubits)
 
 
+class DecomposeWithQubitManagerGiven:
+    def __init__(self, func):
+        self.func = func
+
+    def _decompose_with_qubit_manager_(self, qubits, qubit_manager):
+        return self.func(*qubits, qubit_manager=qubit_manager)
+
+
 class DecomposeGenerated:
     def _decompose_(self):
         yield cirq.X(cirq.LineQubit(0))
