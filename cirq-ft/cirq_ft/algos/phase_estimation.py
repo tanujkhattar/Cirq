@@ -15,55 +15,75 @@ from typing import Optional, List
 from attr import frozen
 from cirq._compat import cached_property
 import cirq
+import math
 
 from cirq_ft import infra
 
 
 @frozen
 class KitaevPhaseEstimation(infra.GateWithRegisters):
-    r"""Class representing the Kitaev Phase Estimation algorithm, originally introduced by
-    Kitaev in https://arxiv.org/abs/quant-ph/9511026."""
+    r"""Kitaev's Phase Estimation algorithm
 
-    precision: int
-    U: cirq.Gate
-    eigenvector_prep: Optional[infra.GateWithRegisters] = None
+    Originally introduced by Kitaev in https://arxiv.org/abs/quant-ph/9511026.
+
+    Args:
+        m_bits: Bitsize of the phase register to be used during phase estimation
+        unitary: A cirq Gate representing the unitary to run the phase estimation protocol on.
+    """
+
+    m_bits: int
+    unitary: cirq.Gate
+
+    @classmethod
+    def from_precision_and_eps(cls, unitary: cirq.Gate, precision: int, eps: float):
+        """Obtain accurate estimate of $\phi$ to $precision$ bits with $1-eps$ success probability.
+
+        Uses Eq 5.35 from Neilson and Chuang to estimate the size of phase register s.t. we can
+        estimate the phase $\phi$ to $precision$ bits of accuracy with probability at least
+        $1 - eps$.
+
+        $$
+            t = n + ceil(\log(2 + \frac{1}{2\eps}))
+        $$
+
+        Args:
+            unitary: Unitary operation to obtain phase estimate of.
+            precision: Number of bits of precision
+            eps: Probability of success.
+        """
+        m_bits = precision + math.ceil(math.log(2 + 1 / (2 * eps)))
+        return KitaevPhaseEstimation(m_bits=m_bits, unitary=unitary)
+
+    @cached_property
+    def target_registers(self) -> infra.Registers:
+        if isinstance(self.unitary, infra.GateWithRegisters):
+            return self.unitary.registers
+        else:
+            return infra.Registers.build(target=cirq.num_qubits(self.unitary))
+
+    @cached_property
+    def phase_registers(self) -> infra.Registers:
+        return infra.Registers.build(phase_reg=self.m_bits)
 
     @cached_property
     def registers(self) -> infra.Registers:
-        return infra.Registers.build(
-            bits_of_precision_register=self.precision, eigenvector_register=self.eigenvector_bitsize
-        )
-
-    @cached_property
-    def eigenvector_bitsize(self):
-        return self.U.num_qubits()
-
-    def qft_inverse(self, qubits):
-        """Generator for the inverse QFT on a list of qubits."""
-        qreg = list(qubits)
-        while len(qreg) > 0:
-            q_head = qreg.pop(0)
-            yield cirq.H(q_head)
-            for i, qubit in enumerate(qreg):
-                yield (cirq.CZ ** (-1 / 2 ** (i + 1)))(qubit, q_head)
-
-    def bits_of_precision_prep(self) -> cirq.Gate:
-        return cirq.H
-
-    def U_to_the_k_power(self, control_bits, eigen_vector_bit) -> List[cirq.Operation]:
-        return [
-            cirq.ControlledGate(self.U).on(bit, eigen_vector_bit) ** (2 ** (self.precision - i - 1))
-            for i, bit in enumerate(control_bits)
-        ]
+        return infra.Registers([*self.phase_registers, *self.target_registers])
 
     def decompose_from_registers(
         self, context: cirq.DecompositionContext, **quregs
     ) -> cirq.OP_TREE:
-        bits_of_precision = quregs["bits_of_precision_register"]
-        eigenvector_bits = quregs["eigenvector_register"]
+        if isinstance(self.unitary, infra.GateWithRegisters):
+            target_quregs = {name: quregs[name] for name in self.target_registers}
+            unitary_op = self.unitary.on_registers(**target_quregs)
+        else:
+            unitary_op = self.unitary(*quregs['target'])
 
-        yield self.bits_of_precision_prep().on_each(*bits_of_precision)
-        if self.eigenvector_prep is not None:
-            yield self.eigenvector_prep.on(*eigenvector_bits)
-        yield [op for op in self.U_to_the_k_power(bits_of_precision, *eigenvector_bits)]
-        yield self.qft_inverse([*bits_of_precision])
+        phase_qubits = quregs['phase_reg']
+
+        yield cirq.H.on_each(*phase_qubits)
+        for i, qbit in enumerate(phase_qubits[::-1]):
+            yield cirq.pow(unitary_op.controlled_by(qbit), 2**i)
+        yield cirq.qft(*phase_qubits, inverse=True)
+        # Reverse qubits after inverse.
+        for i in range(len(phase_qubits) // 2):
+            yield cirq.SWAP(phase_qubits[i], phase_qubits[-i - 1])
